@@ -1,0 +1,2 @@
+export async function api(path,options={}){const session=JSON.parse(localStorage.getItem('qr-session')||'null');const response=await fetch('/api'+path,{...options,headers:{'Content-Type':'application/json',...(session?{Authorization:'Bearer '+session.token}:{}),...options.headers}});if(!response.ok){const data=await response.json().catch(()=>({detail:'服务暂时不可用，请重试'}));throw new Error(typeof data.detail==='string'?data.detail:JSON.stringify(data.detail))}return response.json()}
+export const post=(path,data)=>api(path,{method:'POST',body:JSON.stringify(data)});

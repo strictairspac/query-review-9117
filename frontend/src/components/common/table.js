@@ -1,0 +1,1 @@
+import{esc}from'../../utils/html.js';export function table(heads,rows){return rows.length?'<div class=tablewrap><table><thead><tr>'+heads.map(h=>'<th>'+esc(h)+'</th>').join('')+'</tr></thead><tbody>'+rows.map(r=>'<tr>'+r.map(c=>'<td>'+c+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>':'<div class=empty>这里还没有记录。先到 SQL 复核页创建一个批次，完成后可查看执行证据。</div>'}

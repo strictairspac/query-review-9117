@@ -1,0 +1,73 @@
+name: query-review
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: ${COMPOSE_PROJECT_NAME:-query-review}-db
+    environment:
+      POSTGRES_DB: query_review
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-local_demo_4101}
+    ports: ["${DB_PORT:-17740}:5432"]
+    volumes: ["db-data:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app -d query_review"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+  redis:
+    image: redis:7-alpine
+    container_name: ${COMPOSE_PROJECT_NAME:-query-review}-redis
+    volumes: ["redis-data:/data"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+  backend:
+    build: ./backend
+    container_name: ${COMPOSE_PROJECT_NAME:-query-review}-backend
+    environment: &app-env
+      DATABASE_URL: postgresql+psycopg2://app:${POSTGRES_PASSWORD:-local_demo_4101}@db/query_review
+      REDIS_URL: redis://redis:6379/0
+      JWT_SECRET: ${JWT_SECRET:-local-demo-query-review-change-before-production-20261117}
+      SEED_DEMO: ${SEED_DEMO:-true}
+    ports: ["${BACKEND_PORT:-19240}:8000"]
+    volumes: ["artifacts:/artifacts"]
+    depends_on:
+      db: {condition: service_healthy}
+      redis: {condition: service_healthy}
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+  worker:
+    build: ./backend
+    container_name: ${COMPOSE_PROJECT_NAME:-query-review}-worker
+    environment: *app-env
+    command: ["python", "-u", "-m", "src.worker"]
+    volumes: ["artifacts:/artifacts"]
+    depends_on:
+      db: {condition: service_healthy}
+      redis: {condition: service_healthy}
+      backend: {condition: service_healthy}
+    healthcheck:
+      test: ["CMD", "python", "-c", "import pathlib,time; assert time.time()-float(pathlib.Path('/artifacts/worker.heartbeat').read_text())<20"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+  frontend:
+    build: ./frontend
+    container_name: ${COMPOSE_PROJECT_NAME:-query-review}-frontend
+    ports: ["${FRONTEND_PORT:-18240}:80"]
+    depends_on:
+      backend: {condition: service_healthy}
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1/"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+volumes:
+  db-data:
+  redis-data:
+  artifacts:

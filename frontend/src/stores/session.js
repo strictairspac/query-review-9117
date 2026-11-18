@@ -1,0 +1,1 @@
+export const session={get:()=>JSON.parse(localStorage.getItem('qr-session')||'null'),set:data=>localStorage.setItem('qr-session',JSON.stringify(data)),clear:()=>localStorage.removeItem('qr-session')};

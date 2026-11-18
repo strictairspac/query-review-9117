@@ -1,0 +1,2 @@
+export function notify(message){const n=document.querySelector('#notice');n.textContent=message;n.classList.add('visible');clearTimeout(window.noticeTimer);window.noticeTimer=setTimeout(()=>n.classList.remove('visible'),5000)}
+export async function submit(form,action){const b=form.querySelector('button[type=submit]');if(b)b.disabled=true;try{await action()}catch(e){notify(e.message)}finally{if(b)b.disabled=false}}

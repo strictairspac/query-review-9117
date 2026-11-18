@@ -1,0 +1,1 @@
+Schema version 1: SQLAlchemy metadata creates users/samples/batches/evidence/audit. seed_demo initializes the separate invoices fixture table and NOLOGIN query_reader. invoices is the only permitted SQL source. Run `python -m scripts.seed_demo` for repeatable initialization; natural keys preserve user edits.

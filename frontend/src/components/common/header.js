@@ -1,0 +1,1 @@
+import{esc}from'../../utils/html.js';export const header=(num,title,description)=>'<header class=pagehead><div><div class=eyebrow>WORKSHEET '+num+' / CHENGGANG</div><h1>'+esc(title)+'</h1><p class=muted>'+esc(description)+'</p></div><div class=stamp>SQL REVIEW<br>2026 / 11</div></header>';
