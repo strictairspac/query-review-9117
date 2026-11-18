@@ -4,6 +4,7 @@ from src.models.user import User
 from src.models.sample import Sample
 from src.models.batch import Batch
 from src.models.evidence import Evidence
+from src.models.speed_test import SpeedTest
 from src.models.audit import Audit
 from src.utils.password import hash_password
 ORIGINAL="SELECT DISTINCT i.customer, (SELECT SUM(j.amount) FROM invoices j WHERE j.customer=i.customer AND j.temperature<=8) AS total FROM invoices i WHERE (SELECT SUM(k.amount) FROM invoices k WHERE k.customer=i.customer AND k.temperature<=8)>100 ORDER BY customer"

@@ -41,3 +41,18 @@ def compare(original,candidate):
     equivalent=len(left['columns'])==len(right['columns']) and a==b
     digest=lambda x:hashlib.sha256(json.dumps(sorted(canon(x).items()),ensure_ascii=False).encode()).hexdigest()
     return {'equivalent':equivalent,'comparison':'忽略行顺序、保留重复行；按输出列位置比较，数字按数据库文本表示','original':left,'candidate':right,'original_checksum':digest(left),'candidate_checksum':digest(right),'missing_rows':list((a-b).elements())[:10],'extra_rows':list((b-a).elements())[:10],'note':'执行时间受缓存与机器负载影响；不据一次耗时断言优化收益'}
+def timed_select(sql,timeout_ms):
+    """提速复测专用：只读角色限时执行 SELECT 并返回毫秒耗时，不跑 EXPLAIN。
+
+    超时或执行错误向上抛出，由 worker 把当前样本对作废后重试，不重复计数。
+    """
+    sql=validate_sql(sql)
+    with engine.connect() as conn:
+        with conn.begin():
+            conn.execute(text('SET TRANSACTION READ ONLY'))
+            conn.execute(text("SET LOCAL statement_timeout='%dms'"%int(timeout_ms)))
+            conn.execute(text('SET LOCAL ROLE query_reader'))
+            started=time.perf_counter()
+            cursor=conn.execute(text(sql));rows=cursor.fetchmany(1001)
+            if len(rows)>1000: raise ValueError('结果超过 1000 行，请聚合或 LIMIT')
+            return round((time.perf_counter()-started)*1000,3)

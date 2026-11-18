@@ -1,0 +1,1 @@
+import{api,post}from'./client.js';export const listSpeedTests=(batchId)=>api('/speed-tests'+(batchId?('?batch_id='+batchId):''));export const createSpeedTest=batch_id=>post('/speed-tests',{batch_id});
